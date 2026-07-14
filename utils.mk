@@ -143,6 +143,18 @@ ifndef TARGET_ARCH
   TARGET_ARCH         := $(subst i686,x86,$(TARGET_ARCH))
 endif
 
+# An unrecognized TARGET_ARCH would silently skip the arch-specific CFLAGS
+# below (e.g., -mgeneral-regs-only on aarch64), so normalize and validate it.
+# "override" is needed in case TARGET_ARCH came from the command line.
+override TARGET_ARCH := $(strip $(TARGET_ARCH))
+ifeq ($(TARGET_ARCH),arm64)
+  override TARGET_ARCH := aarch64
+endif
+
+ifeq (,$(filter $(TARGET_ARCH),x86 x86_64 armv7l aarch64 ppc64le))
+  $(error Unrecognized TARGET_ARCH "$(TARGET_ARCH)"; supported values: x86 x86_64 armv7l aarch64 ppc64le)
+endif
+
 ifeq ($(TARGET_ARCH),x86)
   CFLAGS += -DNV_X86 -DNV_ARCH_BITS=32
 endif
